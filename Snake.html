@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #game-container {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            border: 1px solid black;
+            position: relative;
+        }
+        .snake {
+            width: 10px;
+            height: 10px;
+            background-color: green;
+            position: absolute;
+        }
+        .food {
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            position: absolute;
+        }
+        #score {
+            margin-top: 20px;
+        }
+        #buttons {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Snake Game</h1>
+    <div id="game-container">
+    </div>
+    <div id="score">Score: 0</div>
+    <div id="buttons">
+        <button id="up">Up</button>
+        <button id="left">Left</button>
+        <button id="right">Right</button>
+        <button id="down">Down</button>
+        <button onclick="startGame()">Start</button>
+        <button onclick="pauseGame()">Pause</button>
+        <button onclick="resetGame()">Reset</button>
+    </div>
+    
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const scoreElement = document.getElementById('score');
+        const buttonStart = document.querySelector('#buttons button:nth-of-type(5)');
+        const buttonPause = document.querySelector('#buttons button:nth-of-type(6)');
+        const buttonReset = document.querySelector('#buttons button:nth-of-type(7)');
+        const buttonUp = document.getElementById('up');
+        const buttonLeft = document.getElementById('left');
+        const buttonRight = document.getElementById('right');
+        const buttonDown = document.getElementById('down');
+        
+        let snake = [{ x: 150, y: 150 }];
+        let food = {};
+        let dx = 10;
+        let dy = 0;
+        let intervalId;
+        let score = 0;
+
+        function createSnake() {
+            snake.forEach(segment => {
+                const snakeElement = document.createElement('div');
+                snakeElement.style.left = segment.x + 'px';
+                snakeElement.style.top = segment.y + 'px';
+                snakeElement.classList.add('snake');
+                gameContainer.appendChild(snakeElement);
+            });
+        }
+
+        function createFood() {
+            food.x = Math.floor(Math.random() * 30) * 10;
+            food.y = Math.floor(Math.random() * 30) * 10;
+
+            const foodElement = document.createElement('div');
+            foodElement.style.left = food.x + 'px';
+            foodElement.style.top = food.y + 'px';
+            foodElement.classList.add('food');
+            gameContainer.appendChild(foodElement);
+        }
+
+        function moveSnake() {
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreElement.textContent = 'Score: ' + score;
+                removeFood();
+                createFood();
+            } else {
+                snake.pop();
+            }
+
+            if (checkCollision()) {
+                gameOver();
+            }
+
+            updateSnake();
+        }
+
+        function updateSnake() {
+            const snakeElements = document.querySelectorAll('.snake');
+            snakeElements.forEach((segment, index) => {
+                if (index === 0) {
+                    segment.style.left = snake[0].x + 'px';
+                    segment.style.top = snake[0].y + 'px';
+                } else {
+                    segment.style.left = snake[index - 1].x + 'px';
+                    segment.style.top = snake[index - 1].y + 'px';
+                }
+            });
+        }
+
+        function removeFood() {
+            const foodElement = document.querySelector('.food');
+            gameContainer.removeChild(foodElement);
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+            return (
+                head.x < 0 ||
+                head.x >= 300 ||
+                head.y < 0 ||
+                head.y >= 300 ||
+                snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)
+            );
+        }
+
+        function gameOver() {
+            clearInterval(intervalId);
+            alert('Game Over! Your score: ' + score);
+            buttonStart.disabled = false;
+            buttonPause.disabled = true;
+            buttonReset.disabled = false;
+        }
+
+        function startGame() {
+            score = 0;
+            scoreElement.textContent = 'Score: ' + score;
+            buttonStart.disabled = true;
+            buttonPause.disabled = false;
+            buttonReset.disabled = true;
+            snake = [{ x: 150, y: 150 }];
+            gameContainer.innerHTML = '';
+            createSnake();
+            createFood();
+            intervalId = setInterval(moveSnake, 100);
+        }
+
+        function pauseGame() {
+            clearInterval(intervalId);
+            buttonStart.disabled = false;
+            buttonPause.disabled = true;
+            buttonReset.disabled = false;
+        }
+
+        function resetGame() {
+            clearInterval(intervalId);
+            buttonStart.disabled = false;
+            buttonPause.disabled = true;
+            buttonReset.disabled = false;
+            score = 0;
+            scoreElement.textContent = 'Score: ' + score;
+            snake = [{ x: 150, y: 150 }];
+            gameContainer.innerHTML = '';
+            createSnake();
+            createFood();
+        }
+
+        buttonUp.addEventListener('click', () => {
+            if (dy !== 10) {
+                dx = 0;
+                dy = -10;
+            }
+        });
+
+        buttonDown.addEventListener('click', () => {
+            if (dy !== -10) {
+                dx = 0;
+                dy = 10;
+            }
+        });
+
+        buttonLeft.addEventListener('click', () => {
+            if (dx !== 10) {
+                dx = -10;
+                dy = 0;
+            }
+        });
+
+        buttonRight.addEventListener('click', () => {
+            if (dx !== -10) {
+                dx = 10;
+                dy = 0;
+            }
+        });
+    </script>
+</body>
+</html>
